@@ -1,6 +1,6 @@
 # Dynamic Coarse-to-Fine (DCF) Image Inpainting
 
-A state-of-the-art deep learning model for image inpainting that intelligently fills in missing or masked regions of images with realistic content. This implementation achieves high-quality results with an efficient ~12M parameter architecture.
+A state-of-the-art deep learning model for image inpainting that intelligently fills in missing or masked regions of images with realistic content. This implementation achieves high-quality results with an efficient <7M parameter architecture.
 
 ## 📋 Table of Contents
 
@@ -23,14 +23,14 @@ DCF Inpainting is an advanced neural network designed to reconstruct missing por
 - **PSNR**: 24.5 dB (peak performance)
 - **SSIM**: 0.893 (structural similarity)
 - **L1 Error**: 0.102 (final)
-- **Model Size**: ~12M parameters (efficient and deployable)
+- **Model Size**: <7M parameters (efficient and deployable)
 
 ## ✨ Key Features
 
 ### 1. **Dynamic Multi-Scale Processing**
 - Automatically analyzes mask geometry to determine optimal processing scales
 - Extracts quarter patches around masked regions for detailed context understanding
-- Adaptive scale selection from 8×8 to 128×128 pixels
+- Adaptive scale selection from 8×8 to 256×256 pixels
 
 ### 2. **Progressive Refinement**
 - Three-stage coarse-to-fine reconstruction pipeline
@@ -45,13 +45,7 @@ DCF Inpainting is an advanced neural network designed to reconstruct missing por
 - **Smooth Transition Loss**: Local statistics matching for natural blending
 - **Color Consistency**: Ensures uniform color distribution at boundaries
 
-### 4. **Training Stability**
-- Spectral normalization in discriminator to prevent mode collapse
-- Mixed precision training (FP16) for faster convergence
-- Gradient clipping (0.5) for numerical stability
-- Adaptive boundary weight warmup (5.0 → 10.0 over 10 epochs)
-
-### 5. **Efficient Architecture**
+### 4. **Efficient Architecture**
 - 2-layer encoder/decoder blocks with residual connections
 - Single refinement layer per progressive stage
 - Balanced capacity across network depth
@@ -99,7 +93,7 @@ Input (Masked Image + Mask)
 
 ### Training Dynamics
 
-![D Loss & Boundary Loss](picture/d_loss_boundary_loss.png)
+![D Loss & Boundary Loss](picture/D_B_loss.png)
 
 The discriminator loss (blue) shows healthy convergence from ~0.25 to ~0.05, indicating the generator is successfully learning to produce realistic outputs. The boundary loss (red) remains stable around 1.0, demonstrating consistent boundary quality throughout training with the adaptive weighting strategy.
 
@@ -113,86 +107,22 @@ Peak Signal-to-Noise Ratio improves from 23.5 dB to **24.5 dB**, showing consist
 
 Structural Similarity Index progresses from 0.878 to **0.893**, demonstrating excellent preservation of image structure and perceptual quality. The upward trend with some variance is typical of GAN training.
 
-![L1 Error](picture/l1_error.png)
+![L1 Error](picture/L1.png)
 
 L1 error decreases from 0.116 to **0.102**, indicating improved pixel-level accuracy. The reduction demonstrates effective learning of both global structure and fine details.
 
 ### Visual Results
 
-![Inpainting Examples - Epoch 045](picture/epoch_045.png)
+![Inpainting Examples - Epoch 042](picture/result.png)
 
 **Top row**: Input images with masked regions (shown in black)  
 **Middle row**: Reconstructed outputs by the model  
 **Bottom row**: Ground truth original images
 
-The results demonstrate:
-- **Semantic understanding**: Facial features, hair, and skin tones are realistically reconstructed
-- **Texture synthesis**: Fine details like hair strands and skin texture are well-preserved
-- **Boundary quality**: Seamless transitions between known and inpainted regions
-- **Color consistency**: Natural color matching with surrounding pixels
-
-![Alternative Results - Epoch 042](picture/epoch_042.png)
+![Alternative Results - Epoch 039](picture/result2.png)
 
 Consistent quality across different subjects, lighting conditions, and mask shapes.
 
-## 🚀 Installation
-
-### Prerequisites
-```bash
-Python >= 3.8
-CUDA >= 11.0 (for GPU training)
-```
-
-### Dependencies
-```bash
-pip install torch torchvision
-pip install numpy pillow matplotlib tqdm
-pip install scikit-image
-```
-
-Or install from requirements file:
-```bash
-pip install -r requirements.txt
-```
-
-## 💻 Usage
-
-### Quick Start - Inference
-```python
-from inference import DCFInference
-
-# Load trained model
-inferencer = DCFInference(
-    checkpoint_path='checkpoints/best_model.pth',
-    device='cuda'  # or 'cpu'
-)
-
-# Inpaint a single image
-inferencer.inpaint(
-    image_path='input.jpg',
-    mask_path='mask.png',  # Optional: None for auto center mask
-    save_path='output.jpg'
-)
-```
-
-### Batch Processing
-```bash
-python inference.py \
-    --checkpoint checkpoints/best_model.pth \
-    --batch_mode \
-    --input_dir ./test_images \
-    --output_dir ./results \
-    --mask_dir ./masks
-```
-
-### Create Comparison Visualization
-```python
-inferencer.create_comparison(
-    image_path='input.jpg',
-    mask_path='mask.png',
-    save_path='comparison.png'
-)
-```
 
 ## 🎓 Training
 
@@ -418,27 +348,7 @@ dcf-inpainting/
       # More sensitive to blending artifacts
 ```
 
-### 7. **Deployment Features**
-
-#### Interactive GUI
-- **Improvement**: Create Gradio/Streamlit interface
-- **Features**:
-  - Interactive mask drawing
-  - Real-time preview
-  - Batch processing with progress
-  - Parameter adjustment sliders
-
-#### REST API
-- **Improvement**: Docker container with FastAPI endpoint
-- **Usage**:
-```bash
-  docker run -p 8000:8000 dcf-inpainting:latest
-  curl -X POST -F "image=@input.jpg" \
-       -F "mask=@mask.png" \
-       http://localhost:8000/inpaint
-```
-
-### 8. **Extended Applications**
+### 7. **Extended Applications**
 
 #### Video Inpainting
 - **Current**: Single image
@@ -487,36 +397,3 @@ After implementing these improvements, expected metrics:
 #### Neural Architecture Search
 - Automatically find optimal architecture
 - Balance quality vs. efficiency trade-offs
-
-## 📝 Citation
-
-If you use this code in your research, please cite:
-```bibtex
-@misc{dcf-inpainting-2025,
-  title={Dynamic Coarse-to-Fine Image Inpainting with Adaptive Boundary Handling},
-  author={Your Name},
-  year={2025},
-  howpublished={\url{https://github.com/yourusername/dcf-inpainting}}
-}
-```
-
-## 📄 License
-
-This project is licensed under the MIT License - see LICENSE file for details.
-
-## 🙏 Acknowledgments
-
-- VGG network from torchvision models
-- Inspired by recent advances in image inpainting research
-- Built with PyTorch deep learning framework
-
-## 📮 Contact
-
-For questions, issues, or collaboration:
-- Open an issue on GitHub
-- Email: your.email@example.com
-- Project Link: https://github.com/yourusername/dcf-inpainting
-
----
-
-**Note**: This is an active research project. Results and performance may vary depending on dataset and hyperparameters. Contributions and feedback are welcome!
